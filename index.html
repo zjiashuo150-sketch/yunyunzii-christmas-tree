@@ -1,40 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lumina Noel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-    <style>
-      body { margin: 0; background-color: #050505; color: #f0f0f0; overflow: hidden; }
-      canvas { touch-action: none; }
-      /* Custom scrollbar hide */
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "three": "https://esm.sh/three@^0.182.0",
-    "@react-three/fiber": "https://esm.sh/@react-three/fiber@^9.4.2",
-    "@react-three/postprocessing": "https://esm.sh/@react-three/postprocessing@^3.0.4",
-    "@react-three/drei": "https://esm.sh/@react-three/drei@^10.7.7",
-    "@mediapipe/tasks-vision": "https://esm.sh/@mediapipe/tasks-vision@^0.10.22-rc.20250304",
-    "zustand": "https://esm.sh/zustand@^5.0.9"
-  }
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>晕晕子的圣诞树 🎄</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  background:radial-gradient(circle at top,#0f2a1f,#020403);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
-</script>
-<link rel="stylesheet" href="/index.css">
+#title{
+  position:fixed;
+  top:16px;
+  left:16px;
+  color:#d4af37;
+  font-size:20px;
+  letter-spacing:2px;
+  z-index:10;
+}
+#hint{
+  position:fixed;
+  top:46px;
+  left:16px;
+  color:rgba(212,175,55,.7);
+  font-size:12px;
+}
+</style>
 </head>
-  <body>
-    <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+
+<body>
+<div id="title">晕晕子的圣诞树 🎄</div>
+<div id="hint">Three.js · GitHub Pages · Desktop OK</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x020403, 8, 30);
+
+const camera = new THREE.PerspectiveCamera(
+  45,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
+camera.position.set(0, 6, 14);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x446644, 0.6));
+const light = new THREE.DirectionalLight(0xffe8b0, 1.2);
+light.position.set(10, 20, 10);
+scene.add(light);
+
+const COUNT = 400;
+const geo = new THREE.SphereGeometry(0.12, 8, 8);
+const mat = new THREE.MeshStandardMaterial({
+  color: 0x1f7a4f,
+  metalness: 0.4,
+  roughness: 0.6,
+  emissive: 0x113322
+});
+const tree = new THREE.InstancedMesh(geo, mat, COUNT);
+scene.add(tree);
+
+const dummy = new THREE.Object3D();
+for(let i=0;i<COUNT;i++){
+  const h = Math.random()*7;
+  const r = (1-h/7)*3*Math.random();
+  const a = Math.random()*Math.PI*2;
+  dummy.position.set(
+    Math.cos(a)*r,
+    h,
+    Math.sin(a)*r
+  );
+  dummy.updateMatrix();
+  tree.setMatrixAt(i, dummy.matrix);
+}
+tree.instanceMatrix.needsUpdate = true;
+
+function animate(){
+  requestAnimationFrame(animate);
+  tree.rotation.y += 0.002;
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
 </body>
 </html>
